@@ -27,6 +27,7 @@ class NumpyKinds(Enum):
 
     @staticmethod
     def from_dtype(d: np.dtype) -> 'NumpyKinds':
+        d = np.dtype(d) if isinstance(d, type) else d
         if d.kind == 'f':
             return NumpyKinds.FLOAT
         if d.kind == 'i':
@@ -45,6 +46,7 @@ class NumpySizes(Enum):
 
     @staticmethod
     def from_dtype(d: np.dtype) -> 'NumpySizes':
+        d = np.dtype(d) if isinstance(d, type) else d
         if d.itemsize == 1:
             return NumpySizes.BYTE
         if d.itemsize == 2:
@@ -65,6 +67,8 @@ class NumpySizes(Enum):
         :return: size of signed-integer required
         """
         logging.debug('Making NumpySizes from integer min {} and max {}'.format(int_min, int_max))
+        if int_min > int_max:
+            raise ValueError('int_min larger than int_max')
         if int_min >= INTEGER_BYTE_MIN and int_max <= INTEGER_BYTE_MAX:
             return NumpySizes.BYTE
         if int_min >= INTEGER_SHORT_MIN and int_max <= INTEGER_SHORT_MAX:
@@ -121,7 +125,7 @@ class NumpyType:
                 return np.uint32
             if self.size == NumpySizes.DOUBLE:
                 return np.uint64
-            raise ex.NumpyDtypeKindInvalidException('Could not make numpy type, unexpected size: {}'.format(self.size))
+            raise ex.NumpyDtypeSizeInvalidException('Could not make numpy type, unexpected size: {}'.format(self.size))
         if self.kind == NumpyKinds.FLOAT:
             if self.size == NumpySizes.SHORT:
                 return np.float16
@@ -129,11 +133,11 @@ class NumpyType:
                 return np.float32
             if self.size == NumpySizes.DOUBLE:
                 return np.float64
-            raise ex.NumpyDtypeKindInvalidException('Could not make numpy type, unexpected size: {}'.format(self.size))
+            raise ex.NumpyDtypeSizeInvalidException('Could not make numpy type, unexpected size: {}'.format(self.size))
         raise ex.NumpyDtypeKindInvalidException('Could not make numpy type, unexpected kind: {}'.format(self.kind))
 
     def is_smaller_than(self, other_type: 'NumpyType') -> bool:
-        return self.size < other_type.size
+        return self.size.value < other_type.size.value
 
     @staticmethod
     def from_dtype(d: np.dtype) -> 'NumpyType':
