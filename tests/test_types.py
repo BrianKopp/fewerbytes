@@ -137,5 +137,16 @@ class TypesTest(unittest.TestCase):
             nt.to_dtype()
         return
 
+    def test_numpy_type_equality(self):
+        t1 = t.NumpyType(t.NumpyKinds.INTEGER, t.NumpySizes.BYTE)
+        t2 = t.NumpyType(t.NumpyKinds.INTEGER, t.NumpySizes.BYTE)
+        t3 = t.NumpyType(t.NumpyKinds.UNSIGNED, t.NumpySizes.BYTE)
+        t4 = t.NumpyType(t.NumpyKinds.INTEGER, t.NumpySizes.DOUBLE)
+        self.assertTrue(t1 == t2)
+        self.assertFalse(t1 == t3)
+        self.assertFalse(t1 == t4)
+        self.assertFalse(t1 == 1)
+        return
+
 if __name__ == '__main__':
     unittest.main()

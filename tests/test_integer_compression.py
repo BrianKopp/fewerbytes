@@ -37,6 +37,19 @@ def integer_hashable_array():
     ], dtype=np.int64)
 
 
+def integer_sequential_array():
+    arr = np.zeros(1000, np.uint16)
+    for i in range(1000):
+        arr[i] = i
+    return arr
+
+
+def integer_hash_array_not_worth_it():
+    return np.array([
+        1000, 1000, 1000
+    ], dtype=np.int16)
+
+
 class TestIntegerCompression(unittest.TestCase):
     def test_integer_downcast_cannot_downcast_byte_unsigned(self):
         arr, nt = ic.downcast_integers(unsigned_byte_arr())
@@ -113,9 +126,35 @@ class TestIntegerCompression(unittest.TestCase):
 
     def test_integer_hash_works(self):
         arr, nt, transform = ic.hash_integer_compression(integer_hashable_array())
-        print(arr)
-        print(nt)
-        print(transform)
+        self.assertEqual(15, len(arr))
+        self.assertEqual(0, sum(arr[0:5]))
+        self.assertEqual(5, sum(arr[5:10]))
+        self.assertEqual(10, sum(arr[10:15]))
+        self.assertEqual(t.NumpySizes.BYTE, nt.size)
+        self.assertEqual(t.NumpyKinds.UNSIGNED, nt.kind)
+        self.assertEqual(t.NumpySizes.SINGLE, transform.key_values_type.size)
+        self.assertEqual(t.NumpyKinds.UNSIGNED, transform.key_values_type.kind)
+        self.assertEqual(3, len(transform.key_values))
+        self.assertEqual(1000000, transform.key_values[0])
+        self.assertEqual(1111111, transform.key_values[1])
+        self.assertEqual(2222222, transform.key_values[2])
+        return
+
+    def test_integer_hash_not_try_byte(self):
+        arr, nt, transform = ic.hash_integer_compression(unsigned_byte_arr())
+        self.assertEqual(None, transform)
+        return
+
+    def test_integer_hash_keys_not_smaller(self):
+        arr, nt, transform = ic.hash_integer_compression(integer_sequential_array())
+        self.assertEqual(None, transform)
+        return
+
+    def test_integer_hash_not_worth_it(self):
+        # beforehand, array has 3 2-Byte elements = 6B.
+        # after, array has 3 1-Byte elements = 3B, plus 1 2-Byte key = 2B. 5/6 = 0.83, not better than 80%
+        arr, nt, transform = ic.hash_integer_compression(integer_hash_array_not_worth_it())
+        self.assertEqual(None, transform)
         return
 
 if __name__ == '__main__':

@@ -1,4 +1,6 @@
 from enum import Enum
+import numpy as np
+from fewerbytes.types import NumpyType
 
 
 class IntegerTransformTypes(Enum):
@@ -36,7 +38,7 @@ class IntegerElementWiseTransformation:
 
 
 class IntegerHashTransformation:
-    def __init__(self, key_values, key_value_type):
+    def __init__(self, key_values: np.array, key_value_type: NumpyType):
         """
         :param key_values: value of keys
         :param key_value_type: type of keys
