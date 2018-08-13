@@ -8,7 +8,7 @@ A numpy-based compression library to make your data require fewerbytes
 import fewerbytes as fb
 import numpy as np
 arr = np.array([50000, 55000, 60000, 65000, 70000], dtype=np.uint32)
-print(arr.nbytes)  # 20 Bytes
+arr.nbytes  # 20 Bytes
 new_arr, new_arr_type, details = fb.integer_minimize_compression(arr)
 new_arr  # [0, 5000, 10000, 15000, 20000] dtype=uint16
 new_arr_type  # NumpyType with kind UNSIGNED and size SHORT (16bit)
@@ -31,7 +31,7 @@ and then attempts to down-cast the integers to a smaller storage size, e.g. from
 import fewerbytes as fb
 import numpy as np
 arr = np.full(10, fill_value=1, dtype=np.int64)
-fb.downcast_integers(arr)  # array can be 8-bit unsigned integers
+new_arr, new_arr_type = fb.downcast_integers(arr)  # values are stored in 8-bit unsigned integers
 ```
 
 ### Minimize
@@ -48,7 +48,7 @@ difference between the min and max are not as large.
 import fewerbytes as fb
 import numpy as np
 arr = np.full(10, fill_value=1000000)
-fb.integer_minimize_compression(arr)
+fb.integer_minimize_compression(arr)  # (array, NumpyType) - array is all 0's
 ```
 
 ### Derivative or Element-Wise
@@ -63,7 +63,7 @@ For example, unix timestamps from some regularly occurring measurement.
 import fewerbytes as fb
 import numpy as np
 arr = np.array([1, 2, 3, 4, 5])
-fb.integer_derivative_compression(arr)  # compressed array is [1, 1, 1, 1]
+fb.integer_derivative_compression(arr)  # (array, numpy compressed array is [1, 1, 1, 1]
 ```
 
 ### Hash Set
@@ -79,12 +79,12 @@ technique is abandoned if the byte-storage efficiency is improved by less than 2
 ```python
 import fewerbytes as fb
 import numpy as np
-arr = np.array([1000000, 1000001, 1000002, 1000000, 1000000])
-arr.nbytes  # 15 bytes
+arr = np.array([1000000, 1000001, 1000000, 1000000, 1000000], dtype=np.uint32)
+arr.nbytes  # 20 bytes
 keys, keys_type, transform = fb.integer_hash_compression(arr)
-keys  # array [0, 1, 2, 0, 0]
+keys  # array [0, 1, 0, 0, 0]
 keys_type  # UNSIGNED BYTE
-transform.key_values  # array [1000000, 1000001, 1000002]
+transform.key_values  # array [1000000, 1000001]
 transform.key_values_type  # UNSIGNED SINGLE (32-bit)
 ```
 

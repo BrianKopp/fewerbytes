@@ -7,6 +7,8 @@ from fewerbytes.compression_details import (
     IntegerHashTransformation,
     IntegerTransformTypes
 )
+from fewerbytes.integer_compression import downcast_integers
+import fewerbytes.types as t
 
 
 def integer_minimize_decompression(arr: np.array, transform: IntegerMinimizeTransformation) -> np.array:
@@ -17,7 +19,11 @@ def integer_minimize_decompression(arr: np.array, transform: IntegerMinimizeTran
     :return: un-minimized array
     """
     logging.debug('decompressing minimized array with info: {}'.format(transform))
-    return arr + transform.reference_value
+    ret_array_type = t.NumpyType(
+        kind=t.NumpyKinds.from_dtype(arr.dtype),
+        size=t.NumpySizes.DOUBLE  # make it as big as possible then shrink after addition
+    )
+    return downcast_integers(arr.astype(ret_array_type.to_dtype()) + transform.reference_value)[0]
 
 
 def integer_derivative_decompression(arr: np.array, transform: IntegerElementWiseTransformation) -> np.array:
@@ -28,9 +34,13 @@ def integer_derivative_decompression(arr: np.array, transform: IntegerElementWis
     :return: decompressed array
     """
     logging.debug('decompressing derivative array with info: {}'.format(transform))
-    ret_array = np.cumsum(arr) + transform.reference_value
+    ret_array_type = t.NumpyType(
+        kind=t.NumpyKinds.from_dtype(arr.dtype),
+        size=t.NumpySizes.DOUBLE
+    )
+    ret_array = np.cumsum(arr.astype(ret_array_type.to_dtype())) + transform.reference_value
     ret_array = np.insert(ret_array, 0, transform.reference_value)
-    return ret_array
+    return downcast_integers(ret_array)[0]
 
 
 def integer_hash_decompression(arr: np.array, transform: IntegerHashTransformation) -> np.array:
@@ -44,7 +54,7 @@ def integer_hash_decompression(arr: np.array, transform: IntegerHashTransformati
     ret_array = np.zeros(arr.shape, dtype=transform.key_values_type.to_dtype())
     for i in range(len(arr)):
         ret_array[i] = transform.key_values[arr[i]]
-    return ret_array
+    return downcast_integers(ret_array)[0]
 
 
 def integer_decompression_from_transform(
