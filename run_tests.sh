@@ -7,8 +7,9 @@ echo ""
 coverage erase
 
 
-coverage run -a --omit "venv_fewerbytes/*" -m tests.test_types
+coverage run -a --omit "venv_fewerbytes/*" -m tests.test_compression_details
 coverage run -a --omit "venv_fewerbytes/*" -m tests.test_integer_compression
+coverage run -a --omit "venv_fewerbytes/*" -m tests.test_types
 
 report_coverage=false
 include_missing=false
