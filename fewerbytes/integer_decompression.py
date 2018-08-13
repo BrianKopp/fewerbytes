@@ -1,9 +1,11 @@
 import logging
 import numpy as np
+from typing import Union
 from fewerbytes.compression_details import (
     IntegerMinimizeTransformation,
     IntegerElementWiseTransformation,
-    IntegerHashTransformation
+    IntegerHashTransformation,
+    IntegerTransformTypes
 )
 
 
@@ -42,4 +44,35 @@ def integer_hash_decompression(arr: np.array, transform: IntegerHashTransformati
     ret_array = np.zeros(arr.shape, dtype=transform.key_values_type.to_dtype())
     for i in range(len(arr)):
         ret_array[i] = transform.key_values[arr[i]]
+    return ret_array
+
+
+def integer_decompression_from_transform(
+        arr: np.array, transform: Union[IntegerElementWiseTransformation, IntegerMinimizeTransformation,
+                                        IntegerHashTransformation]) -> np.array:
+    """
+    Decompresses an integer array from a transformation
+    :param arr: compressed integer array
+    :param transform: transformation information
+    :return: decompressed array
+    """
+    if transform.transform_type == IntegerTransformTypes.MINIMIZE:
+        return integer_minimize_decompression(arr, transform)
+    elif transform.transform_type == IntegerTransformTypes.DERIVATIVE:
+        return integer_derivative_decompression(arr, transform)
+    elif transform.transform_type == IntegerTransformTypes.HASH:
+        return integer_hash_decompression(arr, transform)
+    raise ValueError('Unable to decompress array using transform: {}'.format(transform))
+
+
+def integer_decompression_from_transforms(arr: np.array, transforms: list) -> np.array:
+    """
+    Decompresses an array using a series of transforms
+    :param arr: compressed array
+    :param transforms: list of transforms, IN THE ORDER THEY WERE APPLIED
+    :return: decompressed array
+    """
+    ret_array = arr
+    for t in transforms:
+        ret_array = integer_decompression_from_transform(ret_array, t)
     return ret_array
