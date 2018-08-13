@@ -1,12 +1,13 @@
 import numpy as np
 import logging
 from typing import Tuple, Union
-from fewerbytes.types import NumpyType, NumpySizes
+from fewerbytes.types import NumpyType, NumpySizes, NumpyKinds
 from fewerbytes.compression_details import (
     IntegerMinimizeTransformation,
     IntegerElementWiseTransformation,
     IntegerHashTransformation
 )
+from fewerbytes.exceptions import NumpyDtypeKindInvalidException
 
 
 def downcast_integers(arr: np.array) -> Tuple[np.array, NumpyType]:
@@ -15,11 +16,15 @@ def downcast_integers(arr: np.array) -> Tuple[np.array, NumpyType]:
     :param arr: numpy array of type uint or int of any size
     :return: numpy array, simply and safely truncated
     """
+    arr_type = NumpyType.from_dtype(arr.dtype)
     logging.debug('downcasting array of shape {}, itemsize {}, and kind {}'.format(
         arr.shape,
-        arr.dtype.itemsize,
-        arr.dtype.kind
+        arr_type.size,
+        arr_type.kind
     ))
+    if arr_type.kind is not NumpyKinds.INTEGER and arr_type.kind is not NumpyKinds.UNSIGNED:
+        raise NumpyDtypeKindInvalidException('invalid dtype kind. expecting '
+                                             'INTEGER or UNSIGNED, got: {}'.format(arr.dtype.kind))
     arr_min = np.min(arr)
     arr_max = np.max(arr)
     logging.debug('array min: {}, max: {}'.format(arr_min, arr_max))

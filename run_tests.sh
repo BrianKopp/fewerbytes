@@ -8,6 +8,7 @@ coverage erase
 
 
 coverage run -a --omit "venv_fewerbytes/*" -m tests.test_types
+coverage run -a --omit "venv_fewerbytes/*" -m tests.test_integer_compression
 
 report_coverage=false
 include_missing=false
