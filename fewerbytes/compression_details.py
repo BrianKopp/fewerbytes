@@ -17,6 +17,9 @@ class IntegerMinimizeTransformation:
         self.reference_value = minimum_value
         return
 
+    def __repr__(self):
+        return '<{}, {} reference_value={}>'.format(self.__class__.__name__, hex(id(self)), self.reference_value)
+
 
 class IntegerElementWiseTransformation:
     def __init__(self, first_value: int):
@@ -27,6 +30,9 @@ class IntegerElementWiseTransformation:
         self.transform_type = IntegerTransformTypes.MINIMIZE
         self.reference_value = first_value
         return
+
+    def __repr__(self):
+        return '<{}, {} reference_value={}>'.format(self.__class__.__name__, hex(id(self)), self.reference_value)
 
 
 class IntegerHashTransformation:
@@ -39,6 +45,10 @@ class IntegerHashTransformation:
         self.key_values = key_values
         self.key_values_type = key_value_type
         return
+
+    def __repr__(self):
+        return '<{}, {} key_values_type={}, key_values={}>'.format(
+            self.__class__.__name__, hex(id(self)), self.key_values_type, self.key_values)
 
 
 class CompressionDetails:

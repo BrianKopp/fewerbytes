@@ -105,6 +105,9 @@ class NumpyType:
         self.size = size
         return
 
+    def __repr__(self):
+        return '<{}, {} kind={}, size={}>'.format(self.__class__.__name__, hex(id(self)), self.kind, self.size)
+
     def to_dtype(self):
         if self.kind == NumpyKinds.INTEGER:
             if self.size == NumpySizes.BYTE:

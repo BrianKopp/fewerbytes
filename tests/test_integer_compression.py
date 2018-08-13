@@ -112,7 +112,10 @@ class TestIntegerCompression(unittest.TestCase):
         return
 
     def test_integer_hash_works(self):
-
+        arr, nt, transform = ic.hash_integer_compression(integer_hashable_array())
+        print(arr)
+        print(nt)
+        print(transform)
         return
 
 if __name__ == '__main__':

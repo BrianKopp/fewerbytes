@@ -147,12 +147,12 @@ def hash_integer_compression(arr: np.array) -> Tuple[np.array, NumpyType, Union[
         logging.debug('array elements are already 1 byte, cannot compress')
         return arr, array_type, None
     array_length = len(arr)
-    array_bytes = array_length * array_type.size
+    array_bytes = array_length * array_type.size.value
     logging.debug('array currently is {} bytes'.format(array_bytes))
 
     unique_values, unique_values_type = downcast_integers(np.unique(arr))
     unique_values_len = len(unique_values)
-    unique_values_bytes = unique_values_len * unique_values_type.size
+    unique_values_bytes = unique_values_len * unique_values_type.size.value
     logging.debug('{} unique values of type {}'.format(unique_values_len, unique_values_type))
 
     key_type = NumpyType.from_integer(unique_values_len - 1)
@@ -160,14 +160,14 @@ def hash_integer_compression(arr: np.array) -> Tuple[np.array, NumpyType, Union[
     if not key_type.is_smaller_than(array_type):  # keys type isn't less than current size, no improvement
         logging.debug('key type is not smaller than original array type. hash does not make sense')
         return arr, array_type, None
-    keys_bytes = array_length * key_type.size
+    keys_bytes = array_length * key_type.size.value
     logging.debug('hash keys require {} bytes'.format(keys_bytes))
     if (keys_bytes + unique_values_bytes) < 0.8 * array_bytes:  # if a 20% byte-wise improvement, proceed
         logging.debug('at least 20% byte improvement gained, using hash table')
         hash_dict = {}
         for i in range(len(unique_values)):
             hash_dict[unique_values[i]] = i
-        key_array = np.zeros(arr.shape, dtype=key_type)
+        key_array = np.zeros(arr.shape, dtype=key_type.to_dtype())
         for i in range(len(key_array)):
             key_array[i] = hash_dict[arr[i]]
         return key_array, key_type, IntegerHashTransformation(unique_values, unique_values_type)
