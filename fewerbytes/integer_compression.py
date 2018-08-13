@@ -41,29 +41,56 @@ def downcast_integers(arr: np.array) -> Tuple[np.array, NumpyType]:
     return arr.astype(dtype=downcast_kind.to_dtype()), downcast_kind
 
 
-def single_derivative_integer_compression(arr: np.array) -> Tuple[np.array, NumpyType, list]:
+def integer_minimize_compression(arr: np.array) -> Tuple[np.array, NumpyType, IntegerMinimizeTransformation]:
+    """
+    Performs a minimization of the integer array
+    :param arr: numpy integer array
+    :return: tuple of the shifted numpy array, the returned type, and the IntegerMinimizeTransformation info
+    """
+    logging.debug('performing a minimization compression on array')
+    arr_type = NumpyType.from_dtype(arr.dtype)
+    logging.debug('array type: {}'.format(arr_type))
+    min_value = np.amin(arr)
+    ret_array, ret_array_type = downcast_integers(arr - min_value)
+    return ret_array, ret_array_type, IntegerMinimizeTransformation(min_value)
+
+
+def integer_derivative_compression(arr: np.array) -> Tuple[np.array, NumpyType, IntegerElementWiseTransformation]:
     """
     Technique whereby the array is shrunk by taking an element-wise difference
-    and then subtracting the minimum from each element
     :param arr: numpy array of integers
     :return: tuple of the new numpy array, the NumpyType, and a list of IntegerTransformations
     """
     logging.debug('single derivative integer compression beginning')
     first_value = arr[0]
+    arr_type = NumpyType.from_dtype(arr.dtype)
+    logging.debug('first value: {}, array type: {}'.format(first_value, arr_type))
     elem_array, elem_array_type = downcast_integers(np.ediff1d(arr))
-    logging.debug('first value: {}, ediff1d array has type: {}'.format(first_value, elem_array_type))
-    elem_min = np.amin(elem_array)
-    elem_min_array, elem_min_array_type = downcast_integers(elem_array - elem_min)
-    logging.debug('array smashed to zero, min was {}, minified type: {}'.format(elem_min, elem_min_array_type))
-    if elem_min_array_type.is_smaller_than(elem_array_type):
-        logging.debug('returning minified element-wise array')
-        return elem_min_array, elem_min_array_type, [
-            IntegerElementWiseTransformation(first_value),
-            IntegerMinimizeTransformation(elem_min)
-        ]
-    # else, just return the element-wise transform
-    logging.debug('just returning element-wise array')
-    return elem_array, elem_array_type, [IntegerElementWiseTransformation(first_value)]
+    logging.debug('element wise array NumpyType: {}'.format(elem_array_type))
+    return elem_array, elem_array_type, IntegerElementWiseTransformation(first_value)
+
+
+def integer_derivative_then_minimize_compression(arr: np.array) -> \
+        Tuple[np.array, NumpyType, IntegerElementWiseTransformation, Union[IntegerMinimizeTransformation, None]]:
+    """
+    Tries to perform a derivative compression, then optionally tries to minimize. It will return the compressed array
+    as well as the element-wise and minimum transformation or None
+    :param arr: integer numpy array
+    :return: compressed array, its NumpyType, and the element-transform and minimize-transform, or None if not done
+    """
+    logging.debug('integer derivative and minimization compression function')
+    arr_type = NumpyType.from_dtype(arr.dtype)
+    logging.debug('array NumpyType {}'.format(arr_type))
+    elem_array, elem_array_type, elem_transform = integer_derivative_compression(arr)
+    logging.debug('element-wise NumpyType {}'.format(elem_array_type))
+    em_array, em_array_type, min_transform = integer_minimize_compression(elem_array)
+    logging.debug('minimize array NumpyType {}'.format(em_array_type))
+    if em_array_type.is_smaller_than(elem_array_type):
+        logging.debug('minimized element-wise array is better, returning that')
+        return em_array, em_array_type, elem_transform, min_transform
+    else:
+        logging.debug('minimized element-wise array does not improve compression')
+        return elem_array, elem_array_type, elem_transform, None
 
 
 def combined_integer_compression(arr: np.array) -> Tuple[np.array, NumpyType, list]:

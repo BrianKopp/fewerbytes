@@ -3,7 +3,6 @@ import numpy as np
 import fewerbytes.exceptions as x
 import fewerbytes.integer_compression as ic
 import fewerbytes.types as t
-import fewerbytes.compression_details as d
 
 
 def unsigned_byte_arr():
@@ -101,27 +100,32 @@ class TestIntegerCompression(unittest.TestCase):
             ic.downcast_integers(np.array([], dtype=np.float32))
         return
 
-    def test_single_derivative_works(self):
-        arr, nt, transforms = ic.single_derivative_integer_compression(unsigned_byte_arr())
+    def test_minimize_works(self):
+        arr, nt, transform = ic.integer_minimize_compression(integer_descending_array())
+        self.assertEqual(10, len(arr))
+        self.assertEqual(nt.kind, t.NumpyKinds.UNSIGNED)
+        self.assertEqual(nt.size, t.NumpySizes.SHORT)
+        self.assertEqual(91000, transform.reference_value)
+        return
+
+    def test_derivative_works(self):
+        arr, nt, transform = ic.integer_derivative_compression(unsigned_byte_arr())
         self.assertEqual(9, len(arr))
         self.assertEqual(nt.kind, t.NumpyKinds.UNSIGNED)
         self.assertEqual(nt.size, t.NumpySizes.BYTE)
-        self.assertEqual(1, len(transforms))
-        self.assertTrue(isinstance(transforms[0], d.IntegerElementWiseTransformation))
-        self.assertEqual(1, transforms[0].reference_value)
+        self.assertEqual(1, transform.reference_value)
         self.assertEqual(1, arr[2])
         return
 
-    def test_single_derivative_also_minifies(self):
-        arr, nt, transforms = ic.single_derivative_integer_compression(integer_descending_array())
+    def test_derivative_then_minimize(self):
+        arr, nt, elem_transform, min_transform = ic.integer_derivative_then_minimize_compression(
+            integer_descending_array()
+        )
         self.assertEqual(9, len(arr))
         self.assertEqual(nt.kind, t.NumpyKinds.UNSIGNED)
         self.assertEqual(nt.size, t.NumpySizes.BYTE)
-        self.assertEqual(2, len(transforms))
-        self.assertTrue(isinstance(transforms[0], d.IntegerElementWiseTransformation))
-        self.assertEqual(100000, transforms[0].reference_value)
-        self.assertTrue(isinstance(transforms[1], d.IntegerMinimizeTransformation))
-        self.assertEqual(-1000, transforms[1].reference_value)
+        self.assertEqual(100000, elem_transform.reference_value)
+        self.assertEqual(-1000, min_transform.reference_value)
         return
 
     def test_integer_hash_works(self):
