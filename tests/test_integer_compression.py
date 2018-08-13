@@ -129,7 +129,7 @@ class TestIntegerCompression(unittest.TestCase):
         return
 
     def test_integer_hash_works(self):
-        arr, nt, transform = ic.hash_integer_compression(integer_hashable_array())
+        arr, nt, transform = ic.integer_hash_compression(integer_hashable_array())
         self.assertEqual(15, len(arr))
         self.assertEqual(0, sum(arr[0:5]))
         self.assertEqual(5, sum(arr[5:10]))
@@ -145,19 +145,19 @@ class TestIntegerCompression(unittest.TestCase):
         return
 
     def test_integer_hash_not_try_byte(self):
-        arr, nt, transform = ic.hash_integer_compression(unsigned_byte_arr())
+        arr, nt, transform = ic.integer_hash_compression(unsigned_byte_arr())
         self.assertEqual(None, transform)
         return
 
     def test_integer_hash_keys_not_smaller(self):
-        arr, nt, transform = ic.hash_integer_compression(integer_sequential_array())
+        arr, nt, transform = ic.integer_hash_compression(integer_sequential_array())
         self.assertEqual(None, transform)
         return
 
     def test_integer_hash_not_worth_it(self):
         # beforehand, array has 3 2-Byte elements = 6B.
         # after, array has 3 1-Byte elements = 3B, plus 1 2-Byte key = 2B. 5/6 = 0.83, not better than 80%
-        arr, nt, transform = ic.hash_integer_compression(integer_hash_array_not_worth_it())
+        arr, nt, transform = ic.integer_hash_compression(integer_hash_array_not_worth_it())
         self.assertEqual(None, transform)
         return
 

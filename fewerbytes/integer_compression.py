@@ -117,10 +117,10 @@ def combined_integer_compression(arr: np.array) -> Tuple[np.array, NumpyType, li
     while which_loop < max_loops and working_type.size > NumpySizes.BYTE:
         which_loop += 1
         logging.debug('starting {} of {} loops'.format(which_loop, max_loops))
-        working_array, working_type, comp_transforms = single_derivative_integer_compression(working_array)
-        working_transforms.extend(comp_transforms)
+        working_array, working_type, elem_t, min_t = integer_derivative_then_minimize_compression(working_array)
+        working_transforms.extend([elem_t, min_t])
 
-        hashed_array, hash_keys_type, hash_transform = hash_integer_compression(working_array)
+        hashed_array, hash_keys_type, hash_transform = integer_hash_compression(working_array)
         if hash_transform is not None:  # this requires 20% better improvement than working_array
             if best_hash_array is None:
                 logging.debug('hash was successful, best hash saved')
@@ -162,7 +162,7 @@ def combined_integer_compression(arr: np.array) -> Tuple[np.array, NumpyType, li
     return best_array, best_type, best_transforms
 
 
-def hash_integer_compression(arr: np.array) -> Tuple[np.array, NumpyType, Union[IntegerHashTransformation, None]]:
+def integer_hash_compression(arr: np.array) -> Tuple[np.array, NumpyType, Union[IntegerHashTransformation, None]]:
     """
     Gets the unique values in an array, and produces a hash set
     :param arr: numpy integer array
